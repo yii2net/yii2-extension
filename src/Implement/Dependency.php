@@ -49,11 +49,9 @@ class Dependency implements DependencyInterface
      */
     protected function checkRequiredPackageInstalledAndVersion($packageName,$packageVersion)
     {
-        echo $packageName."\n";
         try{
             $version = PrettyVersions::getVersion($packageName);
             $installedPackageVersion = $version->getShortVersion();
-            echo $installedPackageVersion."\n";
             if(Semver::satisfies($installedPackageVersion, $packageVersion) ){
                 //安装的包，符合packageVersion的需求
                 $this->setInstalledPackages($packageName,$installedPackageVersion);
