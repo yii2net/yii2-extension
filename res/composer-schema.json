@@ -3,7 +3,7 @@
   "name": "Package",
   "type": "object",
   "additionalProperties": false,
-  "required": [ "name", "description" ],
+  "required": [ "name", "description" ,"version","extra","authors"],
   "properties": {
     "name": {
       "type": "string",

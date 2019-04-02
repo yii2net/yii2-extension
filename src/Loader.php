@@ -60,14 +60,15 @@ class Loader implements ManagerInterface
     }
 
     /**
+     * @param $category
      * @param $status
      * @param $page
      * @param $pageSize
      * @return mixed
      */
-    public function localList($status='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
+    public function localList($category='', $status='', $query='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
     {
-        return $this->container->get($this->manager)->localList($status, $page, $pageSize);
+        return $this->container->get($this->manager)->localList($category, $status, $query , $page, $pageSize);
     }
 
 

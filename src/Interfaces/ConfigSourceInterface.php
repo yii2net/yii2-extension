@@ -1,7 +1,7 @@
 <?php
 namespace Yikaikeji\Extension\Interfaces;
 
-interface ConfigInterface
+interface ConfigSourceInterface
 {
     public function getPackageInstalledPath();
 

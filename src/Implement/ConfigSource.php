@@ -1,9 +1,9 @@
 <?php
 namespace Yikaikeji\Extension\Implement;
 
-use Yikaikeji\Extension\Interfaces\ConfigInterface;
+use Yikaikeji\Extension\Interfaces\ConfigSourceInterface;
 
-class Config implements ConfigInterface
+class ConfigSource implements ConfigSourceInterface
 {
     private $installedPath = null;
 

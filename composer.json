@@ -12,6 +12,7 @@
     ],
     "require": {
         "php": ">=7.0.0",
+        "nahid/qarray": "~1.0.0",
         "vierbergenlars/php-semver": "~3.0.2",
         "doctrine/event-manager": "~1.0.0",
         "php-di/php-di": "~6.0.7",

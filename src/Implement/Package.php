@@ -2,7 +2,7 @@
 namespace Yikaikeji\Extension\Implement;
 
 use Yikaikeji\Extension\Interfaces\PackageInterface;
-use Yikaikeji\Extension\Implement\Config;
+use Yikaikeji\Extension\Implement\ConfigSource;
 use Yikaikeji\Extension\Utils\JsonFile;
 use Yikaikeji\Extension\Utils\JsonValidationException;
 use vierbergenlars\SemVer\version;
@@ -32,23 +32,56 @@ class Package implements PackageInterface
     /**
      * @var string package id
      */
-    private $_id;
-
+    private $name;
+    /**
+     * @var string pretty name
+     */
+    private $prettyName;
+    /**
+     * @var string extension type
+     */
+    private $extType;
     /**
      * @var string version (semver)
      */
-    private $_version;
-
+    private $version;
+    /**
+     * @var float price
+     */
+    private $price;
     /**
      *
      * @var string status
      */
-    private $_status;
-
+    private $status;
     /**
-     * @var \Yikaikeji\Extension\Implement\Config
+     * @var array authors
      */
-    private $config;
+    private $authors;
+    /**
+     * @var string $category
+     */
+    private $category;
+    /**
+     * @var string package type
+     */
+    private $type;
+    /**
+     * @var string
+     */
+    private $description;
+    /**
+     * @var
+     */
+    private $keywords;
+    /**
+     * @var string require framework
+     */
+    private $requireFramework;
+    /**
+     * @var \Yikaikeji\Extension\Implement\ConfigSource
+     */
+    private $configSource;
 
     /**
      * @var path of composer.json
@@ -62,30 +95,33 @@ class Package implements PackageInterface
 
     private $_packageValidate = false;
 
-    public function __construct(Config $config,$packageId)
+    private $_properties = ['description','keywords','price','authors','prettyName','extType','category','type','requireFramework'];
+
+    public function __construct(ConfigSource $configSource, $packageName)
     {
-        $this->_id = $packageId;
-        $this->config = $config;
-        $this->_path  = $this->config->getPackageInstalledPath().DIRECTORY_SEPARATOR.$this->_id.DIRECTORY_SEPARATOR.$this->config->getPackageConfigFileName();
+        $this->name = $packageName;
+        $this->configSource = $configSource;
+        $this->_path  = $this->configSource->getPackageInstalledPath().DIRECTORY_SEPARATOR.$this->getName().DIRECTORY_SEPARATOR.$this->configSource->getPackageConfigFileName();
         $this->checkPackageConfig();
 
         if($this->getPackageValidate()){
             try{
                 $this->_config = JsonFile::parseJson(file_get_contents($this->getPath()));
                 //如果composer.json的name与getId()不一致就判断包有问题
-                if($this->get('name') != $this->getId()){
+                if($this->get('name') != $this->getName()){
                     $this->_config = [];
                     $this->_packageValidate = false;
                 }else{
                     if($this->get('version')){
                         try{
                             $semver = new version($this->get('version'));
-                            $this->_version = $semver->valid();
+                            $this->version = $semver->valid();
                         }catch (\Exception $e){
                             //version not valid
                         }
                     }
                     $this->setStatus(static::STATUS_DOWNLOADED);
+                    $this->setProperties();
                 }
             }catch (\Exception $e){
                 $this->_packageValidate = false;
@@ -93,13 +129,19 @@ class Package implements PackageInterface
         }
     }
 
+    private function setProperties()
+    {
+        foreach ($this->_properties as $property){
+            $this->{$property} = $this->get($property);
+        }
+    }
 
     /**
      * @return mixed
      */
-    public function getId()
+    public function getName()
     {
-        return $this->_id;
+        return $this->name;
     }
 
     /**
@@ -107,7 +149,7 @@ class Package implements PackageInterface
      */
     public function getVersion()
     {
-        return $this->_version;
+        return $this->version;
     }
 
     public function getPath()
@@ -149,6 +191,8 @@ class Package implements PackageInterface
     {
         if($this->getPackageValidate() && isset($this->_config[$name])){
             return $this->_config[$name];
+        }elseif($this->getPackageValidate() && isset($this->_config['extra'][$name])){
+            return $this->_config['extra'][$name];
         }
         return null;
     }
@@ -158,7 +202,7 @@ class Package implements PackageInterface
      */
     public function getStatus()
     {
-        return $this->_status;
+        return $this->status;
     }
 
     /**
@@ -167,8 +211,101 @@ class Package implements PackageInterface
      */
     public function setStatus($status)
     {
-        $this->_status = $status;
+        $this->status = $status;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getPrettyName()
+    {
+        return $this->prettyName;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getExtType()
+    {
+        return $this->extType;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAuthors()
+    {
+        return $this->authors;
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     * @return mixed
+     */
+    public function setExtra($key, $value)
+    {
+        $this->_config['extra'][$key] = $value;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCategory()
+    {
+        return $this->category;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRequireFramework()
+    {
+        return $this->requireFramework;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPrice()
+    {
+        return $this->price;
+    }
+
+    public function toArray()
+    {
+        $array = [];
+        foreach ($this as $property=>$value){
+            $method = "get".ucfirst($property);
+            if(method_exists($this,$method)){
+                $array[$property] = call_user_func([$this,$method]);
+            }
+        }
+        return $array;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getKeywords()
+    {
+        return join(',',$this->keywords);
+    }
 
 }

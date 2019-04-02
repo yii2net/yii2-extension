@@ -4,9 +4,10 @@ namespace Yikaikeji\Extension\Implement;
 use Yikaikeji\Extension\Implement\EventArgs;
 use Doctrine\Common\EventManager;
 use Yikaikeji\Extension\Interfaces\ManagerInterface;
-use Yikaikeji\Extension\Implement\Config;
+use Yikaikeji\Extension\Implement\ConfigSource;
 use Jean85\PrettyVersions;
 use Yikaikeji\Extension\Interfaces\PackageInterface;
+use Yikaikeji\Extension\Implement\ArrayQuery;
 
 class Manager implements ManagerInterface
 {
@@ -44,12 +45,17 @@ class Manager implements ManagerInterface
     const EVENT_AFTER_DOWNLOAD = "afterDownload";
 
     /**
+     * @var array
+     */
+    private $localPackages = [];
+
+    /**
      * @var EventManager
      */
     private $eventManager;
 
     /**
-     * @var array|\Yikaikeji\Extension\Implement\Config
+     * @var array|\Yikaikeji\Extension\Implement\ConfigSource
      */
     private $config;
 
@@ -74,7 +80,7 @@ class Manager implements ManagerInterface
             }
         }
 
-        $this->config = new Config($config);
+        $this->config = new ConfigSource($config);
     }
 
     /**
@@ -169,12 +175,68 @@ class Manager implements ManagerInterface
     }
 
     /**
+     * @param $category
      * @param $status
+     * @param $query string match package name
      * @param $page
      * @param $pageSize
      * @return mixed
      */
-    public function localList($status='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
+    public function localList($category='',$status='',$query='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
+    {
+        $conditions = [];
+        if(in_array($status,[
+                Package::STATUS_DOWNLOADED,
+                Package::STATUS_SETUPED,
+                Package::STATUS_PAUSE,
+                Package::STATUS_START
+            ]))
+        {
+            $conditions['status'] = $status;
+        }
+        if($category && is_string($category)){
+            $conditions['category'] = $category;
+        }
+        if($query && is_string($query)){
+            $conditions['name'] = ['contains',$query];
+        }
+        $this->getAllLocalValidPackages();
+
+        return $this->queryLocalValidPackages($conditions,$page,$pageSize);
+    }
+
+    /**
+     * @return array
+     */
+    protected function getAllLocalValidPackages()
+    {
+        $VendorIterator = new \DirectoryIterator($this->config->getPackageInstalledPath());
+        foreach ($VendorIterator as $vendorFile) {
+            if ($vendorFile->isDir() && !$vendorFile->isDot()) {
+                $vendorName = $vendorFile->getFilename();
+                $PackageIterator = new \DirectoryIterator($this->config->getPackageInstalledPath().DIRECTORY_SEPARATOR.$vendorName);
+                foreach ($PackageIterator as $packageFile) {
+                    if ($packageFile->isDir() && !$packageFile->isDot()) {
+                        $fileName = $packageFile->getFilename();
+                        $packageName = $vendorName.DIRECTORY_SEPARATOR.$fileName;
+                        $package = new Package($this->config,$packageName);
+                        if($package->getPackageValidate()){
+                            try{
+                                PrettyVersions::getVersion($packageName);
+                                $package->setStatus(Package::STATUS_SETUPED);
+                            }catch (\OutOfBoundsException $e){
+                                $package->setStatus(Package::STATUS_DOWNLOADED);
+                            }
+                            $this->localPackages[] = $package;
+                        }
+                    }
+                }
+            }
+        }
+        return $this->localPackages;
+    }
+
+    protected function queryLocalValidPackages($conditions=[],$page,$pageSize)
     {
         $result = [
             'total'=>0,
@@ -183,72 +245,50 @@ class Manager implements ManagerInterface
             'data'=>[]
         ];
 
-        $packages = $this->getAllLocalValidPackages();
-        if(count($packages)>0 && in_array($status,[
-            Package::STATUS_DOWNLOADED,
-            Package::STATUS_SETUPED,
-            Package::STATUS_PAUSE,
-            Package::STATUS_START
-        ])){
-            $packages = $this->getLocalValidPackages($packages,$status);
+        $queryConditions = [
+            'category',
+            'price',
+            'requireFramework',
+            'require',
+            'status',
+            'name'
+        ];
+        foreach ($conditions as $key=>$value){
+            if(!in_array($key,$queryConditions)){
+                unset($conditions[$key]);
+            }
         }
 
-        $result['total'] = count($packages);
-        if($result['total']>0){
-            $start = ($page - 1) * $pageSize;
-            $result['data'] = array_slice($packages,$start,$pageSize,false);
+        //gen array data
+        $array = [];
+        foreach ($this->localPackages as $package){
+            if($package instanceof PackageInterface){
+                $array[] = $package->toArray();
+            }
         }
 
-        return $result;
-    }
-
-    /**
-     * @return array
-     */
-    protected function getAllLocalValidPackages()
-    {
-        $packages = [];
-        $VendorIterator = new \DirectoryIterator($this->config->getPackageInstalledPath());
-        foreach ($VendorIterator as $vendorFile) {
-            if ($vendorFile->isDir() && !$vendorFile->isDot()) {
-                $vendorName = $vendorFile->getFilename();
-                $PackageIterator = new \DirectoryIterator($this->config->getPackageInstalledPath().DIRECTORY_SEPARATOR.$vendorName);
-                foreach ($PackageIterator as $packageFile) {
-                    if ($packageFile->isDir() && !$packageFile->isDot()) {
-                        $packageName = $packageFile->getFilename();
-                        $packageId = $vendorName.DIRECTORY_SEPARATOR.$packageName;
-                        $package = new Package($this->config,$packageId);
-                        if($package->getPackageValidate()){
-                            try{
-                                PrettyVersions::getVersion($packageId);
-                                $package->setStatus(Package::STATUS_SETUPED);
-                            }catch (\OutOfBoundsException $e){
-                                $package->setStatus(Package::STATUS_DOWNLOADED);
-                            }
-                            $packages[] = $package;
-                        }
-                    }
+        try{
+            /**
+             * help: https://github.com/nahid/qarray
+             */
+            $ArrayQuery = new ArrayQuery($array);
+            $ArrayQuery->from('.');
+            foreach ($conditions as $key=>$value){
+                if(is_string($value)){
+                    $ArrayQuery->where($key,$value);
+                }elseif(is_array($value) && count($value)==2){
+                    $ArrayQuery->where($key,$value[0],$value[1]);
                 }
             }
-        }
-        return $packages;
-    }
+            $result['total'] = $ArrayQuery->count();
+            $start = ($page - 1)*$pageSize;
+            $result['data']  = $ArrayQuery->offset($start)->take($pageSize)->toArray();
 
-    /**
-     * @param array $packages
-     * @param $status
-     * @return array
-     */
-    protected function getLocalValidPackages(Array $packages,$status)
-    {
-        $list = [];
-        foreach ($packages as $package){
-            if($package instanceof PackageInterface && $package->getStatus() == $status){
-                $list[] = $package;
-            }
+        }catch (\Exception $e){
+//            print_r($e->getMessage());
+//            print_r($e->getTraceAsString());
         }
-        return $list;
+        return $result;
     }
-
 
 }
