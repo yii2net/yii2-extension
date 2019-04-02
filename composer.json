@@ -13,7 +13,7 @@
     "require": {
         "php": ">=7.0.0",
         "nahid/qarray": "~1.0.0",
-        "vierbergenlars/php-semver": "~3.0.2",
+        "composer/semver": "^1.5.0",
         "doctrine/event-manager": "~1.0.0",
         "php-di/php-di": "~6.0.7",
         "justinrainbow/json-schema": "^3.0 || ^4.0 || ^5.0",

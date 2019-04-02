@@ -8,6 +8,7 @@ use Yikaikeji\Extension\Implement\ConfigSource;
 use Jean85\PrettyVersions;
 use Yikaikeji\Extension\Interfaces\PackageInterface;
 use Yikaikeji\Extension\Implement\ArrayQuery;
+use Yikaikeji\Extension\Implement\Dependency;
 
 class Manager implements ManagerInterface
 {
@@ -283,7 +284,10 @@ class Manager implements ManagerInterface
             $result['total'] = $ArrayQuery->count();
             $start = ($page - 1)*$pageSize;
             $result['data']  = $ArrayQuery->offset($start)->take($pageSize)->toArray();
-
+            foreach ($result['data'] as $k=>$package){
+                $dependency = new Dependency($package);
+                $result['data'][$k]['unInstalledDependencies'] = $dependency->getUnInstalledDependencies();
+            }
         }catch (\Exception $e){
 //            print_r($e->getMessage());
 //            print_r($e->getTraceAsString());

@@ -33,5 +33,7 @@ interface PackageInterface
 
     public function getKeywords();
 
+    public function getRequire();
+
     public function toArray();
 }

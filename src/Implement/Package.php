@@ -5,7 +5,7 @@ use Yikaikeji\Extension\Interfaces\PackageInterface;
 use Yikaikeji\Extension\Implement\ConfigSource;
 use Yikaikeji\Extension\Utils\JsonFile;
 use Yikaikeji\Extension\Utils\JsonValidationException;
-use vierbergenlars\SemVer\version;
+use Composer\Semver\VersionParser;
 
 class Package implements PackageInterface
 {
@@ -75,6 +75,10 @@ class Package implements PackageInterface
      */
     private $keywords;
     /**
+     * @var array
+     */
+    private $require;
+    /**
      * @var string require framework
      */
     private $requireFramework;
@@ -95,7 +99,7 @@ class Package implements PackageInterface
 
     private $_packageValidate = false;
 
-    private $_properties = ['description','keywords','price','authors','prettyName','extType','category','type','requireFramework'];
+    private $_properties = ['require','description','keywords','price','authors','prettyName','extType','category','type','requireFramework'];
 
     public function __construct(ConfigSource $configSource, $packageName)
     {
@@ -112,13 +116,8 @@ class Package implements PackageInterface
                     $this->_config = [];
                     $this->_packageValidate = false;
                 }else{
-                    if($this->get('version')){
-                        try{
-                            $semver = new version($this->get('version'));
-                            $this->version = $semver->valid();
-                        }catch (\Exception $e){
-                            //version not valid
-                        }
+                    if($this->get('version') && $this->checkValidVersion($this->get('version'))){
+                        $this->version = $this->get('version');
                     }
                     $this->setStatus(static::STATUS_DOWNLOADED);
                     $this->setProperties();
@@ -127,6 +126,22 @@ class Package implements PackageInterface
                 $this->_packageValidate = false;
             }
         }
+    }
+
+    /**
+     * 强制要求版本号v0.0.0 要有三个数字
+     * @param $version
+     * @return bool
+     */
+    private function checkValidVersion($version)
+    {
+        if(preg_match('/^v?(\d{1,5})(\.\d++)(\.\d++)/i',$version)){
+            $versionParser = new VersionParser();
+            if($versionParser->normalize($version)){
+                return true;
+            }
+        }
+        throw new \UnexpectedValueException('Invalid version string "' . $version . '"');
     }
 
     private function setProperties()
@@ -306,6 +321,14 @@ class Package implements PackageInterface
     public function getKeywords()
     {
         return join(',',$this->keywords);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRequire()
+    {
+        return $this->require;
     }
 
 }
