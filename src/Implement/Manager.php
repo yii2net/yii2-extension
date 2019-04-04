@@ -9,6 +9,7 @@ use Jean85\PrettyVersions;
 use Yikaikeji\Extension\Interfaces\PackageInterface;
 use Yikaikeji\Extension\Implement\ArrayQuery;
 use Yikaikeji\Extension\Implement\Dependency;
+use Yikaikeji\Extension\Implement\Package;
 
 class Manager implements ManagerInterface
 {
@@ -58,7 +59,7 @@ class Manager implements ManagerInterface
     /**
      * @var array|\Yikaikeji\Extension\Implement\ConfigSource
      */
-    private $config;
+    private $configSource;
 
     /**
      * Manager constructor.
@@ -81,7 +82,7 @@ class Manager implements ManagerInterface
             }
         }
 
-        $this->config = new ConfigSource($config);
+        $this->configSource = new ConfigSource($config);
     }
 
     /**
@@ -107,11 +108,11 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * @param $extendisonId
+     * @param $packageName
      */
-    public function Unsetup($extensionId)
+    public function unSetup($packageName)
     {
-        $eventArgs = new EventArgs(['extensionId'=>$extensionId]);
+        $eventArgs = new EventArgs(['extensionId'=>$packageName]);
         $this->eventManager->dispatchEvent(self::EVENT_BEFORE_UNSETUP,$eventArgs);
         $this->doUnsetup($eventArgs);
         $this->eventManager->dispatchEvent(self::EVENT_AFTER_UNSETUP,$eventArgs);
@@ -126,11 +127,13 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * @param $extensionId
+     * @param $locate
+     * @param $packageName
+     * @param $packageVersion
      */
-    public function Setup($extensionId)
+    public function setup($packageName, $packageVersion, $locate=self::LOCATE_LOCAL)
     {
-        $eventArgs = new EventArgs(['extensionId'=>$extensionId]);
+        $eventArgs = new EventArgs(['locate'=>$locate,'packageName'=>$packageName,'packageVersion'=>$packageVersion]);
         $this->eventManager->dispatchEvent(self::EVENT_BEFORE_SETUP,$eventArgs);
         $this->doSetup($eventArgs);
         $this->eventManager->dispatchEvent(self::EVENT_AFTER_SETUP,$eventArgs);
@@ -140,17 +143,26 @@ class Manager implements ManagerInterface
     protected function doSetup(EventArgs $eventArgs)
     {
         $result = '';
+        //修改root project composer.json
+        $path = '';
+        if($eventArgs->locate == self::LOCATE_LOCAL){
+            $path = $this->configSource->getPackageScanPath().DIRECTORY_SEPARATOR.$eventArgs->packageName;
+            $package = new Package($this->configSource,$eventArgs->packageName);
+            $eventArgs->packageVersion = $package->getVersion();
+        }
+        $this->configSource->addPackageToComposer($eventArgs->packageName,$eventArgs->packageVersion,$path);
+
         $eventArgs->result = $result;
         return $result;
     }
 
     /**
-     * @param $extensionId
+     * @param $packageName
      * @return mixed
      */
-    public function Delete($extensionId)
+    public function delete($packageName)
     {
-        $eventArgs = new EventArgs(['extensionId'=>$extensionId]);
+        $eventArgs = new EventArgs(['extensionId'=>$packageName]);
         $this->eventManager->dispatchEvent(self::EVENT_BEFORE_DELETE,$eventArgs);
         $this->doDelete($eventArgs);
         $this->eventManager->dispatchEvent(self::EVENT_AFTER_DELETE,$eventArgs);
@@ -211,16 +223,16 @@ class Manager implements ManagerInterface
      */
     protected function getAllLocalValidPackages()
     {
-        $VendorIterator = new \DirectoryIterator($this->config->getPackageInstalledPath());
+        $VendorIterator = new \DirectoryIterator($this->configSource->getPackageScanPath());
         foreach ($VendorIterator as $vendorFile) {
             if ($vendorFile->isDir() && !$vendorFile->isDot()) {
                 $vendorName = $vendorFile->getFilename();
-                $PackageIterator = new \DirectoryIterator($this->config->getPackageInstalledPath().DIRECTORY_SEPARATOR.$vendorName);
+                $PackageIterator = new \DirectoryIterator($this->configSource->getPackageScanPath().DIRECTORY_SEPARATOR.$vendorName);
                 foreach ($PackageIterator as $packageFile) {
                     if ($packageFile->isDir() && !$packageFile->isDot()) {
                         $fileName = $packageFile->getFilename();
                         $packageName = $vendorName.DIRECTORY_SEPARATOR.$fileName;
-                        $package = new Package($this->config,$packageName);
+                        $package = new Package($this->configSource,$packageName);
                         if($package->getPackageValidate()){
                             try{
                                 PrettyVersions::getVersion($packageName);
@@ -239,6 +251,8 @@ class Manager implements ManagerInterface
 
     protected function queryLocalValidPackages($conditions=[],$page,$pageSize)
     {
+        $page = intval($page);
+        $pageSize = intval($pageSize);
         $result = [
             'total'=>0,
             'page' =>$page,

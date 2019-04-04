@@ -11,12 +11,20 @@ interface ManagerInterface
      * @var int default page
      */
     const DEFAULT_PAGE = 1;
+    /**
+     * @var local package
+     */
+    const LOCATE_LOCAL = 'local';
+    /**
+     * @var remote package
+     */
+    const LOCATE_REMOTE = 'remote';
 
-    public function setup($extensionId);
+    public function setup($packageName, $packageVersion, $locate=self::LOCATE_LOCAL);
 
-    public function unsetup($extensionId);
+    public function unSetup($packageName);
 
-    public function delete($extensionId);
+    public function delete($packageName);
 
     public function remoteList($category='',$page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE);
 

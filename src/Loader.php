@@ -24,28 +24,32 @@ class Loader implements ManagerInterface
     }
 
     /**
-     * @param $extensionId
-     */
-    public function unsetup($extensionId)
-    {
-        return $this->container->get($this->manager)->unsetup($extensionId);
-    }
-
-    /**
-     * @param $extensionId
-     */
-    public function setup($extensionId)
-    {
-        return $this->container->get($this->manager)->setup($extensionId);
-    }
-
-    /**
-     * @param $extensionId
+     * @param $packageName
      * @return mixed
      */
-    public function delete($extensionId)
+    public function unSetup($packageName)
     {
-        return $this->container->get($this->manager)->delete($extensionId);
+        return $this->container->get($this->manager)->unsetup($packageName);
+    }
+
+    /**
+     * @param $packageName
+     * @param $packageVersion
+     * @param Interfaces\local $locate
+     * @return mixed
+     */
+    public function setup($packageName, $packageVersion, $locate=self::LOCATE_LOCAL)
+    {
+        return $this->container->get($this->manager)->setup($packageName, $packageVersion, $locate);
+    }
+
+    /**
+     * @param $packageName
+     * @return mixed
+     */
+    public function delete($packageName)
+    {
+        return $this->container->get($this->manager)->delete($packageName);
     }
 
     /**

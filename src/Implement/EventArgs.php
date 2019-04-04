@@ -12,7 +12,11 @@ class EventArgs extends BaseEventArgs
 {
     public $result;
 
-    public $extensionId;
+    public $packageName;
+
+    public $packageVersion;
+
+    public $locate;
 
     public $params;
 
@@ -22,10 +26,27 @@ class EventArgs extends BaseEventArgs
      */
     public function __construct($params = [])
     {
-        if(isset($params['extensionId'])){
-            $this->extensionId = $params['extensionId'];
-            unset($params['extensionId']);
+        $initFields = ['packageName','packageVersion','locate'];
+        foreach ($initFields as $field){
+            if(isset($params[$field])){
+                $this->{$field} = $params[$field];
+                unset($params[$field]);
+            }
         }
         $this->params = $params;
+    }
+
+    /**
+     * @param $key
+     * @return mixed|null
+     */
+    public function get($key)
+    {
+        if(property_exists($this,$key)){
+            return $this->{$key};
+        }elseif(isset($this->params[$key])){
+            return $this->params[$key];
+        }
+        return null;
     }
 }

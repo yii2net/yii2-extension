@@ -101,11 +101,14 @@ class Package implements PackageInterface
 
     private $_properties = ['require','description','keywords','price','authors','prettyName','extType','category','type','requireFramework'];
 
-    public function __construct(ConfigSource $configSource, $packageName)
+    public function __construct(ConfigSource $configSource, $packageName, $packageDir='')
     {
         $this->name = $packageName;
         $this->configSource = $configSource;
-        $this->_path  = $this->configSource->getPackageInstalledPath().DIRECTORY_SEPARATOR.$this->getName().DIRECTORY_SEPARATOR.$this->configSource->getPackageConfigFileName();
+        if(!$packageDir){
+            $packageDir = $this->configSource->getPackageScanPath();
+        }
+        $this->_path  = $packageDir.DIRECTORY_SEPARATOR.$this->getName().DIRECTORY_SEPARATOR.$this->configSource->getPackageConfigFileName();
         $this->checkPackageConfig();
 
         if($this->getPackageValidate()){
