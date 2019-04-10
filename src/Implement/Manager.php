@@ -10,6 +10,7 @@ use Yikaikeji\Extension\Interfaces\PackageInterface;
 use Yikaikeji\Extension\Implement\ArrayQuery;
 use Yikaikeji\Extension\Implement\Dependency;
 use Yikaikeji\Extension\Implement\Package;
+use Yikaikeji\Extension\Implement\Composer;
 
 class Manager implements ManagerInterface
 {
@@ -62,6 +63,11 @@ class Manager implements ManagerInterface
     private $configSource;
 
     /**
+     * @var \Yikaikeji\Extension\Implement\Composer
+     */
+    private $composer;
+
+    /**
      * Manager constructor.
      * @param EventManager $eventManager
      */
@@ -83,6 +89,7 @@ class Manager implements ManagerInterface
         }
 
         $this->configSource = new ConfigSource($config);
+        $this->composer     = new Composer($this->configSource);
     }
 
     /**
@@ -112,16 +119,21 @@ class Manager implements ManagerInterface
      */
     public function unSetup($packageName)
     {
-        $eventArgs = new EventArgs(['extensionId'=>$packageName]);
+        $eventArgs = new EventArgs(['packageName'=>$packageName]);
         $this->eventManager->dispatchEvent(self::EVENT_BEFORE_UNSETUP,$eventArgs);
         $this->doUnsetup($eventArgs);
         $this->eventManager->dispatchEvent(self::EVENT_AFTER_UNSETUP,$eventArgs);
         return $eventArgs->result;
     }
 
+    /**
+     * @param \Yikaikeji\Extension\Implement\EventArgs $eventArgs
+     * @return string
+     */
     protected function doUnsetup(EventArgs $eventArgs)
     {
         $result = '';
+        $this->composer->remove($eventArgs->packageName,$this->configSource->onUnSetupCallback());
         $eventArgs->result = $result;
         return $result;
     }
@@ -140,6 +152,10 @@ class Manager implements ManagerInterface
         return $eventArgs->result;
     }
 
+    /**
+     * @param \Yikaikeji\Extension\Implement\EventArgs $eventArgs
+     * @return string
+     */
     protected function doSetup(EventArgs $eventArgs)
     {
         $result = '';
@@ -151,7 +167,7 @@ class Manager implements ManagerInterface
             $eventArgs->packageVersion = $package->getVersion();
         }
         $this->configSource->addPackageToComposer($eventArgs->packageName,$eventArgs->packageVersion,$path);
-
+        $this->composer->update([],$this->configSource->onSetupCallback());
         $eventArgs->result = $result;
         return $result;
     }
@@ -162,13 +178,17 @@ class Manager implements ManagerInterface
      */
     public function delete($packageName)
     {
-        $eventArgs = new EventArgs(['extensionId'=>$packageName]);
+        $eventArgs = new EventArgs(['packageName'=>$packageName]);
         $this->eventManager->dispatchEvent(self::EVENT_BEFORE_DELETE,$eventArgs);
         $this->doDelete($eventArgs);
         $this->eventManager->dispatchEvent(self::EVENT_AFTER_DELETE,$eventArgs);
         return $eventArgs->result;
     }
 
+    /**
+     * @param \Yikaikeji\Extension\Implement\EventArgs $eventArgs
+     * @return string
+     */
     protected function doDelete(EventArgs $eventArgs)
     {
         $result = '';
@@ -218,6 +238,21 @@ class Manager implements ManagerInterface
         return $this->queryLocalValidPackages($conditions,$page,$pageSize);
     }
 
+    public function getPackage($packageName)
+    {
+        $package = new Package($this->configSource,$packageName);
+        if($package->getPackageValidate()){
+            try{
+                PrettyVersions::getVersion($packageName);
+                $package->setStatus(Package::STATUS_SETUPED);
+            }catch (\OutOfBoundsException $e){
+                $package->setStatus(Package::STATUS_DOWNLOADED);
+            }
+            return $package;
+        }
+        return null;
+    }
+
     /**
      * @return array
      */
@@ -232,14 +267,8 @@ class Manager implements ManagerInterface
                     if ($packageFile->isDir() && !$packageFile->isDot()) {
                         $fileName = $packageFile->getFilename();
                         $packageName = $vendorName.DIRECTORY_SEPARATOR.$fileName;
-                        $package = new Package($this->configSource,$packageName);
-                        if($package->getPackageValidate()){
-                            try{
-                                PrettyVersions::getVersion($packageName);
-                                $package->setStatus(Package::STATUS_SETUPED);
-                            }catch (\OutOfBoundsException $e){
-                                $package->setStatus(Package::STATUS_DOWNLOADED);
-                            }
+                        $package = $this->getPackage($packageName);
+                        if($package){
                             $this->localPackages[] = $package;
                         }
                     }
@@ -249,7 +278,13 @@ class Manager implements ManagerInterface
         return $this->localPackages;
     }
 
-    protected function queryLocalValidPackages($conditions=[],$page,$pageSize)
+    /**
+     * @param array $conditions
+     * @param $page
+     * @param $pageSize
+     * @return array
+     */
+    protected function queryLocalValidPackages($conditions=[], $page, $pageSize)
     {
         $page = intval($page);
         $pageSize = intval($pageSize);

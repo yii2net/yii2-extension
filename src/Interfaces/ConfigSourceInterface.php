@@ -3,7 +3,7 @@ namespace Yikaikeji\Extension\Interfaces;
 
 interface ConfigSourceInterface
 {
-    public function getComposerBin();
+    public function getComposerPath();
 
     public function getRootProjectPath();
 
@@ -14,4 +14,11 @@ interface ConfigSourceInterface
     public function getPackageConfigFileName();
 
     public function addPackageToComposer($packageName,$packageVersion,$extra=[]);
+
+    public function onSetupCallback();
+
+    public function onUnSetupCallback();
+
+    public function onDeleteCallback();
+
 }

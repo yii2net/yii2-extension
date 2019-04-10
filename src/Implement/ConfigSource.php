@@ -4,22 +4,63 @@ namespace Yikaikeji\Extension\Implement;
 use Yikaikeji\Extension\Interfaces\ConfigSourceInterface;
 use Yikaikeji\Extension\Utils\JsonFile;
 
+/**
+ * Class ConfigSource
+ * @package Yikaikeji\Extension\Implement
+ */
 class ConfigSource implements ConfigSourceInterface
 {
+    /**
+     *
+     */
     const COMPOSER_JSON_NAME = "composer.json";
 
+    /**
+     * @var array
+     */
     private $mustComposerPlugins = [
         "oomphinc/composer-installers-extender"=>"dev-master"
     ];
 
+    /**
+     * @var
+     */
     private $rootProjectPath;
 
+    /**
+     * @var
+     */
     private $packageInstalledPath;
 
+    /**
+     * @var
+     */
     private $packageScanPath;
 
-    private $composerBin;
+    /**
+     * @var
+     */
+    private $composerPath;
 
+    /**
+     * @var
+     */
+    private $onSetupCallback;
+
+    /**
+     * @var
+     */
+    private $onUnSetupCallback;
+
+    /**
+     * @var
+     */
+    private $onDeleteCallback;
+
+    /**
+     * ConfigSource constructor.
+     * @param array $config
+     */
     public function __construct($config = [])
     {
         foreach ($config as $property=>$value){
@@ -64,9 +105,9 @@ class ConfigSource implements ConfigSourceInterface
     /**
      * @return mixed
      */
-    public function getComposerBin()
+    public function getComposerPath()
     {
-        return $this->composerBin;
+        return $this->composerPath;
     }
 
     /**
@@ -142,7 +183,6 @@ class ConfigSource implements ConfigSourceInterface
     public function setInstalledPaths($composerSource,$packageName)
     {
         $composerSource = $this->checkMustComposerPlugins($composerSource);
-        print_r($composerSource);
         $dest = $this->getPackageInstalledPath().DIRECTORY_SEPARATOR.'{$vendor}'.DIRECTORY_SEPARATOR.'{$name}';
         $dests = array_keys($composerSource['extra']['installer-paths']);
         if(!in_array($dest,$dests)){
@@ -154,6 +194,30 @@ class ConfigSource implements ConfigSourceInterface
             $composerSource['extra']['installer-paths'][$dest][] = $packageName;
         }
         return $composerSource;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function onSetupCallback()
+    {
+        return $this->onSetupCallback;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function onUnSetupCallback()
+    {
+        return $this->onUnSetupCallback;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function onDeleteCallback()
+    {
+        return $this->onDeleteCallback;
     }
 
 

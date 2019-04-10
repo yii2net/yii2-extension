@@ -23,6 +23,11 @@ class Loader implements ManagerInterface
         $this->container->get($this->manager)->init($config);
     }
 
+    public function getPackage($packageName)
+    {
+        return $this->container->get($this->manager)->getPackage($packageName);
+    }
+
     /**
      * @param $packageName
      * @return mixed
