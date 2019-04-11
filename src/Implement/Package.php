@@ -123,6 +123,16 @@ class Package implements PackageInterface
                         $this->version = $this->get('version');
                     }
                     $this->setStatus(static::STATUS_DOWNLOADED);
+                    //检测composer extra meta=>string/array
+                    if(is_string($this->_config['extra'][$this->configSource->getExtraNamespace()])){
+                        $extraConfigFile = $this->configSource->getPackageScanPath() . DIRECTORY_SEPARATOR . $this->getName() . DIRECTORY_SEPARATOR . $this->_config['extra'][$this->configSource->getExtraNamespace()];
+                        if(is_file($extraConfigFile)){
+                            $extraConfig = include $extraConfigFile;
+                            if(is_array($extraConfig)){
+                                $this->_config['extra'][$this->configSource->getExtraNamespace()] = $extraConfig;
+                            }
+                        }
+                    }
                     $this->setProperties();
                 }
             }catch (\Exception $e){
@@ -207,8 +217,11 @@ class Package implements PackageInterface
      */
     public function get($name)
     {
+        $extraNamespace = $this->configSource->getExtraNamespace();
         if($this->getPackageValidate() && isset($this->_config[$name])){
             return $this->_config[$name];
+        }elseif($this->getPackageValidate() && isset($this->_config['extra'][$extraNamespace][$name])){
+            return $this->_config['extra'][$extraNamespace][$name];
         }elseif($this->getPackageValidate() && isset($this->_config['extra'][$name])){
             return $this->_config['extra'][$name];
         }
@@ -263,7 +276,8 @@ class Package implements PackageInterface
      */
     public function setExtra($key, $value)
     {
-        $this->_config['extra'][$key] = $value;
+        $extraNamespace = $this->configSource->getExtraNamespace();
+        $this->_config['extra'][$extraNamespace][$key] = $value;
     }
 
     /**

@@ -15,10 +15,18 @@ interface ConfigSourceInterface
 
     public function addPackageToComposer($packageName,$packageVersion,$extra=[]);
 
+    public function removePackageToComposer($packageName,$packageVersion,$extra=[]);
+
     public function onSetupCallback();
 
     public function onUnSetupCallback();
 
     public function onDeleteCallback();
+
+    public function getLogLevel();
+
+    public function isDebug();
+
+    public function getExtraNamespace();
 
 }

@@ -22,7 +22,7 @@ interface ManagerInterface
 
     public function setup($packageName, $packageVersion, $locate=self::LOCATE_LOCAL);
 
-    public function unSetup($packageName);
+    public function unSetup($packageName, $locate=self::LOCATE_LOCAL);
 
     public function delete($packageName);
 

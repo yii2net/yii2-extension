@@ -15,6 +15,13 @@ class ConfigSource implements ConfigSourceInterface
      */
     const COMPOSER_JSON_NAME = "composer.json";
 
+    const LOG_LEVEL_INFO = "info";
+
+    const LOG_LEVEL_DEBUG = "debug";
+
+    private $logLevel = 'info';
+
+
     /**
      * @var array
      */
@@ -57,6 +64,8 @@ class ConfigSource implements ConfigSourceInterface
      */
     private $onDeleteCallback;
 
+    private $extraNamespace = 'meta';
+
     /**
      * ConfigSource constructor.
      * @param array $config
@@ -68,6 +77,14 @@ class ConfigSource implements ConfigSourceInterface
                 $this->{$property} = $value;
             }
         }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLogLevel()
+    {
+        return $this->logLevel;
     }
 
     /**
@@ -152,6 +169,38 @@ class ConfigSource implements ConfigSourceInterface
     }
 
     /**
+     * @param $packageName
+     * @param $packageVersion
+     * @param string $path
+     * @return mixed
+     */
+    public function removePackageToComposer($packageName, $packageVersion, $path = '')
+    {
+        $composerPath = $this->getRootProjectPath().DIRECTORY_SEPARATOR.$this->getPackageConfigFileName();
+        try{
+            $composerSource = JsonFile::parseJson(file_get_contents($composerPath));
+            $composerSource = $this->removeInstalledPaths($composerSource,$packageName);
+            if($path && is_dir($path)){
+                if(!isset($composerSource['repositories'])){
+                    $composerSource['repositories'] = [];
+                }
+                $repos = [];
+                foreach ($composerSource['repositories'] as $k=>$repository){
+                    if($repository['url'] != $path){
+                        $repos[] = $repository;
+                    }
+                }
+                $composerSource['repositories'] = $repos;
+            }
+            file_put_contents($composerPath,JsonFile::encode($composerSource,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+            return true;
+        }catch (\Exception $e){
+            //todo
+        }
+        return false;
+    }
+
+    /**
      * @param $composerSource
      * @return mixed
      */
@@ -197,6 +246,29 @@ class ConfigSource implements ConfigSourceInterface
     }
 
     /**
+     * 把包从installer-paths里面删除
+     * @param $composerSource
+     * @param $packageName
+     * @return mixed
+     */
+    public function removeInstalledPaths($composerSource,$packageName)
+    {
+        $dest = $this->getPackageInstalledPath().DIRECTORY_SEPARATOR.'{$vendor}'.DIRECTORY_SEPARATOR.'{$name}';
+        if(in_array($packageName,$composerSource['extra']['installer-paths'][$dest])){
+            foreach ($composerSource['extra']['installer-paths'][$dest] as $k=>$p){
+                if($p == $packageName){
+                    unset($composerSource['extra']['installer-paths'][$dest][$k]);
+                    break;
+                }
+            }
+            if(empty($composerSource['extra']['installer-paths'][$dest])){
+                $composerSource['extra']['installer-paths'] = [];
+            }
+        }
+        return $composerSource;
+    }
+
+    /**
      * @return mixed
      */
     public function onSetupCallback()
@@ -220,5 +292,17 @@ class ConfigSource implements ConfigSourceInterface
         return $this->onDeleteCallback;
     }
 
+    public function isDebug()
+    {
+        return $this->getLogLevel() == self::LOG_LEVEL_DEBUG;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getExtraNamespace()
+    {
+        return $this->extraNamespace;
+    }
 
 }

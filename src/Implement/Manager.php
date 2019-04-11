@@ -117,9 +117,9 @@ class Manager implements ManagerInterface
     /**
      * @param $packageName
      */
-    public function unSetup($packageName)
+    public function unSetup($packageName,$locate=self::LOCATE_LOCAL)
     {
-        $eventArgs = new EventArgs(['packageName'=>$packageName]);
+        $eventArgs = new EventArgs(['locate'=>$locate,'packageName'=>$packageName]);
         $this->eventManager->dispatchEvent(self::EVENT_BEFORE_UNSETUP,$eventArgs);
         $this->doUnsetup($eventArgs);
         $this->eventManager->dispatchEvent(self::EVENT_AFTER_UNSETUP,$eventArgs);
@@ -133,7 +133,15 @@ class Manager implements ManagerInterface
     protected function doUnsetup(EventArgs $eventArgs)
     {
         $result = '';
+        //修改root project composer.json
+        $path = '';
+        if($eventArgs->locate == self::LOCATE_LOCAL){
+            $path = $this->configSource->getPackageScanPath().DIRECTORY_SEPARATOR.$eventArgs->packageName;
+            $package = new Package($this->configSource,$eventArgs->packageName);
+            $eventArgs->packageVersion = $package->getVersion();
+        }
         $this->composer->remove($eventArgs->packageName,$this->configSource->onUnSetupCallback());
+        $this->configSource->removePackageToComposer($eventArgs->packageName,$eventArgs->packageVersion,$path);
         $eventArgs->result = $result;
         return $result;
     }

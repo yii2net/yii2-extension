@@ -32,9 +32,9 @@ class Loader implements ManagerInterface
      * @param $packageName
      * @return mixed
      */
-    public function unSetup($packageName)
+    public function unSetup($packageName,$locate=self::LOCATE_LOCAL)
     {
-        return $this->container->get($this->manager)->unsetup($packageName);
+        return $this->container->get($this->manager)->unsetup($packageName,$locate);
     }
 
     /**

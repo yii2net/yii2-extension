@@ -26,7 +26,7 @@ class Composer implements ComposerInterface
     /**
      * @var array
      */
-    private $default_params = ["-vvv","-n"];
+    private $default_params = ["-n"];
 
     /**
      * @var ConfigSourceInterface
@@ -42,6 +42,17 @@ class Composer implements ComposerInterface
         $this->configSource = $configSource;
         if(!$this->canExecute()){
             throw new \UnexpectedValueException('Composer Path Config Error!');
+        }
+        switch ($this->configSource->getLogLevel()){
+            case ConfigSource::LOG_LEVEL_DEBUG:
+                $this->default_params[] = "-vvv";
+                break;
+            case ConfigSource::LOG_LEVEL_INFO:
+                $this->default_params[] = "-vv";
+                break;
+            default:
+                $this->default_params[] = "";
+                break;
         }
     }
 
@@ -83,16 +94,14 @@ class Composer implements ComposerInterface
     private function exec($action, $params = [], $callback)
     {
         $cmd = $this->genCliCmd($action,array_merge($this->default_params,$params));
-        if(is_callable($callback))$callback($cmd);
+        if($this->configSource->isDebug()){
+            if(is_callable($callback))$callback($cmd . " in " .$this->configSource->getRootProjectPath());
+        }
         $process = new Process($cmd,$this->configSource->getRootProjectPath());
         $process->setTimeout(600);
         $process->start();
         $process->waitUntil(function ($type, $buffer)use($callback) {
-            if (Process::ERR === $type) {
-                if(is_callable($callback))$callback($buffer);
-            } else {
-                if(is_callable($callback))$callback($buffer);
-            }
+            if(is_callable($callback))$callback($buffer);
         });
 //        $cmd .= " -d " . $this->configSource->getRootProjectPath();
 //        //echo $cmd;exit;
@@ -111,6 +120,7 @@ class Composer implements ComposerInterface
      */
     public function install($params = [], $callback)
     {
+        $params[] = "--prefer-dist";
         $this->exec(static::CMD_INSTALL, $params, $callback);
     }
 
@@ -121,6 +131,7 @@ class Composer implements ComposerInterface
      */
     public function update($params = [], $callback)
     {
+        $params[] = "--prefer-dist";
         $this->exec(static::CMD_UPDATE, $params, $callback);
     }
 
