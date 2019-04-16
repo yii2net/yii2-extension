@@ -116,6 +116,8 @@ class Manager implements ManagerInterface
 
     /**
      * @param $packageName
+     * @param \Yikaikeji\Extension\Interfaces\local $locate
+     * @return mixed
      */
     public function unSetup($packageName,$locate=self::LOCATE_LOCAL)
     {
@@ -140,8 +142,11 @@ class Manager implements ManagerInterface
             $package = new Package($this->configSource,$eventArgs->packageName);
             $eventArgs->packageVersion = $package->getVersion();
         }
+        //关闭后 加速卸载
+        $this->configSource->disablePackagist();
         $this->composer->remove($eventArgs->packageName,$this->configSource->onUnSetupCallback());
         $this->configSource->removePackageToComposer($eventArgs->packageName,$eventArgs->packageVersion,$path);
+        $this->configSource->enablePackagist();
         $eventArgs->result = $result;
         return $result;
     }
@@ -169,13 +174,21 @@ class Manager implements ManagerInterface
         $result = '';
         //修改root project composer.json
         $path = '';
+        $package = null;
         if($eventArgs->locate == self::LOCATE_LOCAL){
             $path = $this->configSource->getPackageScanPath().DIRECTORY_SEPARATOR.$eventArgs->packageName;
             $package = new Package($this->configSource,$eventArgs->packageName);
             $eventArgs->packageVersion = $package->getVersion();
+            $this->configSource->checkCanDisablePackagist($package);
         }
+
         $this->configSource->addPackageToComposer($eventArgs->packageName,$eventArgs->packageVersion,$path);
+        //要在addPackageToComposer之后
+        if($this->configSource->getCanDisablePackagist()){
+            $this->configSource->disablePackagist();
+        }
         $this->composer->update([],$this->configSource->onSetupCallback());
+        $this->configSource->enablePackagist();
         $eventArgs->result = $result;
         return $result;
     }
@@ -210,7 +223,7 @@ class Manager implements ManagerInterface
      * @param $pageSize
      * @return mixed
      */
-    public function remoteList( $category='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
+    public function remoteList( $category='',$query='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
     {
         // TODO: Implement list() method.
     }

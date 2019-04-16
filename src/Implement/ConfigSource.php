@@ -2,7 +2,10 @@
 namespace Yikaikeji\Extension\Implement;
 
 use Yikaikeji\Extension\Interfaces\ConfigSourceInterface;
+use Yikaikeji\Extension\Interfaces\PackageInterface;
 use Yikaikeji\Extension\Utils\JsonFile;
+use Yikaikeji\Extension\Implement\Dependency;
+use Yikaikeji\Extension\Implement\Composer;
 
 /**
  * Class ConfigSource
@@ -20,6 +23,8 @@ class ConfigSource implements ConfigSourceInterface
     const LOG_LEVEL_DEBUG = "debug";
 
     private $logLevel = 'info';
+
+    private $canDisablePackagist = false;
 
 
     /**
@@ -65,6 +70,11 @@ class ConfigSource implements ConfigSourceInterface
     private $onDeleteCallback;
 
     private $extraNamespace = 'meta';
+
+    private $composerSourceList = [
+        'packagist' => ['type'=>'composer','url'=>'https://packagist.laravel-china.org'],
+        'asset' => ['type'=>'composer','url'=>'https://asset-packagist.org'],
+    ];
 
     /**
      * ConfigSource constructor.
@@ -147,12 +157,16 @@ class ConfigSource implements ConfigSourceInterface
                     $composerSource['repositories'] = [];
                 }
                 $hasRepo = false;
+                $repositories = [];
                 foreach ($composerSource['repositories'] as $k=>$repository){
                     if($repository['url'] == $path){
                         $hasRepo = true;
-                        break;
+                    }
+                    if(!$this->shouldSkip($k,$repository)){
+                        $repositories[$k] = $repository;
                     }
                 }
+                $composerSource['repositories'] = $repositories;
                 if(!$hasRepo){
                     $composerSource['repositories'][] = [
                         'type' => 'path',
@@ -164,6 +178,27 @@ class ConfigSource implements ConfigSourceInterface
             return true;
         }catch (\Exception $e){
             //todo
+        }
+        return false;
+    }
+
+    /**
+     * 默认是过滤掉type = composer的源，程序自动补充对应的源
+     * @param $key
+     * @param $repo
+     * @return bool
+     */
+    private function shouldSkip($key,$repo)
+    {
+        if(is_array($this->composerSourceList) && !empty($this->composerSourceList)){
+            if(isset($this->composerSourceList[$key])){
+                return true;
+            }
+            foreach ($this->composerSourceList as $k=>$v){
+                if($v == $repo){
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -184,13 +219,15 @@ class ConfigSource implements ConfigSourceInterface
                 if(!isset($composerSource['repositories'])){
                     $composerSource['repositories'] = [];
                 }
-                $repos = [];
+                $repositories = [];
                 foreach ($composerSource['repositories'] as $k=>$repository){
                     if($repository['url'] != $path){
-                        $repos[] = $repository;
+                        if(!$this->shouldSkip($k,$repository)){
+                            $repositories[$k] = $repository;
+                        }
                     }
                 }
-                $composerSource['repositories'] = $repos;
+                $composerSource['repositories'] = $repositories;
             }
             file_put_contents($composerPath,JsonFile::encode($composerSource,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
             return true;
@@ -303,6 +340,51 @@ class ConfigSource implements ConfigSourceInterface
     public function getExtraNamespace()
     {
         return $this->extraNamespace;
+    }
+
+    public function checkCanDisablePackagist(PackageInterface $package)
+    {
+        $this->canDisablePackagist = false;
+        $dependency = new Dependency($package->toArray());
+        $un = $dependency->getUnInstalledDependencies();
+        if(empty($un)){
+            $this->canDisablePackagist = true;
+        }
+        return $this->canDisablePackagist;
+    }
+
+    /**
+     *
+     */
+    public function disablePackagist()
+    {
+        if(is_array($this->composerSourceList) && !empty($this->composerSourceList)){
+            $composer = new Composer($this);
+            foreach ($this->composerSourceList as $key=>$repo){
+                $composer->config(['repositories.' . $key, 'false'],null);
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    public function enablePackagist()
+    {
+        if(is_array($this->composerSourceList) && !empty($this->composerSourceList)){
+            $composer = new Composer($this);
+            foreach ($this->composerSourceList as $key=>$repo){
+                $composer->config(['repositories.' . $key, $repo['type'] , $repo['url']],null);
+            }
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCanDisablePackagist()
+    {
+        return $this->canDisablePackagist;
     }
 
 }

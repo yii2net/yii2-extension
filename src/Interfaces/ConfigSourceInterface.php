@@ -29,4 +29,12 @@ interface ConfigSourceInterface
 
     public function getExtraNamespace();
 
+    public function checkCanDisablePackagist(PackageInterface $package);
+
+    public function getCanDisablePackagist();
+
+    public function disablePackagist();
+
+    public function enablePackagist();
+
 }

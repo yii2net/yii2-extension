@@ -10,4 +10,6 @@ interface ComposerInterface
     public function update($params = [], $callback);
 
     public function remove($packageName, $callback);
+
+    public function config($params = [], $callback);
 }

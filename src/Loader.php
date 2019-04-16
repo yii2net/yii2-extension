@@ -63,9 +63,9 @@ class Loader implements ManagerInterface
      * @param $pageSize
      * @return mixed
      */
-    public function remoteList($category='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
+    public function remoteList($category='', $query='', $page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE)
     {
-        return $this->container->get($this->manager)->remoteList($category, $page, $pageSize);
+        return $this->container->get($this->manager)->remoteList($category, $query,$page, $pageSize);
     }
 
     /**

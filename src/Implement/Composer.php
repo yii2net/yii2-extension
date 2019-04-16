@@ -23,6 +23,8 @@ class Composer implements ComposerInterface
      */
     const CMD_REMOVE = "remove";
 
+    const CMD_CONFIG = "config";
+
     /**
      * @var array
      */
@@ -135,9 +137,8 @@ class Composer implements ComposerInterface
         $this->exec(static::CMD_UPDATE, $params, $callback);
     }
 
-
     /**
-     * @param array $params
+     * @param $packageName
      * @param $callback
      */
     public function remove($packageName, $callback)
@@ -145,6 +146,14 @@ class Composer implements ComposerInterface
         $this->exec(static::CMD_REMOVE, [$packageName], $callback);
     }
 
+    /**
+     * @param array $params
+     * @param $callback
+     */
+    public function config($params = [], $callback)
+    {
+        $this->exec(static::CMD_CONFIG, $params, $callback);
+    }
 
 
 }
