@@ -26,6 +26,8 @@ class ConfigSource implements ConfigSourceInterface
 
     private $canDisablePackagist = false;
 
+    private $packagePathSymLink = false;
+
 
     /**
      * @var array
@@ -170,7 +172,8 @@ class ConfigSource implements ConfigSourceInterface
                 if(!$hasRepo){
                     $composerSource['repositories'][] = [
                         'type' => 'path',
-                        'url'  => $path
+                        'url'  => $path,
+                        'options' => [ 'symlink' => $this->packagePathSymLink ]
                     ];
                 }
             }
