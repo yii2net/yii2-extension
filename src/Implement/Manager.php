@@ -1,16 +1,16 @@
 <?php
-namespace Yikaikeji\Extension\Implement;
+namespace Openadm\Extension\Implement;
 
-use Yikaikeji\Extension\Implement\EventArgs;
+use Openadm\Extension\Implement\EventArgs;
 use Doctrine\Common\EventManager;
-use Yikaikeji\Extension\Interfaces\ManagerInterface;
-use Yikaikeji\Extension\Implement\ConfigSource;
+use Openadm\Extension\Interfaces\ManagerInterface;
+use Openadm\Extension\Implement\ConfigSource;
 use Jean85\PrettyVersions;
-use Yikaikeji\Extension\Interfaces\PackageInterface;
-use Yikaikeji\Extension\Implement\ArrayQuery;
-use Yikaikeji\Extension\Implement\Dependency;
-use Yikaikeji\Extension\Implement\Package;
-use Yikaikeji\Extension\Implement\Composer;
+use Openadm\Extension\Interfaces\PackageInterface;
+use Openadm\Extension\Implement\ArrayQuery;
+use Openadm\Extension\Implement\Dependency;
+use Openadm\Extension\Implement\Package;
+use Openadm\Extension\Implement\Composer;
 
 class Manager implements ManagerInterface
 {
@@ -58,12 +58,12 @@ class Manager implements ManagerInterface
     private $eventManager;
 
     /**
-     * @var array|\Yikaikeji\Extension\Implement\ConfigSource
+     * @var array|\Openadm\Extension\Implement\ConfigSource
      */
     private $configSource;
 
     /**
-     * @var \Yikaikeji\Extension\Implement\Composer
+     * @var \Openadm\Extension\Implement\Composer
      */
     private $composer;
 
@@ -116,7 +116,7 @@ class Manager implements ManagerInterface
 
     /**
      * @param $packageName
-     * @param \Yikaikeji\Extension\Interfaces\local $locate
+     * @param \Openadm\Extension\Interfaces\local $locate
      * @return mixed
      */
     public function unSetup($packageName,$locate=self::LOCATE_LOCAL)
@@ -129,7 +129,7 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * @param \Yikaikeji\Extension\Implement\EventArgs $eventArgs
+     * @param \Openadm\Extension\Implement\EventArgs $eventArgs
      * @return string
      */
     protected function doUnsetup(EventArgs $eventArgs)
@@ -166,7 +166,7 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * @param \Yikaikeji\Extension\Implement\EventArgs $eventArgs
+     * @param \Openadm\Extension\Implement\EventArgs $eventArgs
      * @return string
      */
     protected function doSetup(EventArgs $eventArgs)
@@ -207,7 +207,7 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * @param \Yikaikeji\Extension\Implement\EventArgs $eventArgs
+     * @param \Openadm\Extension\Implement\EventArgs $eventArgs
      * @return string
      */
     protected function doDelete(EventArgs $eventArgs)

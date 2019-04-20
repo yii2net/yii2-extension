@@ -1,10 +1,10 @@
 <?php
-namespace Yikaikeji\Extension\Implement;
+namespace Openadm\Extension\Implement;
 
-use Yikaikeji\Extension\Interfaces\PackageInterface;
-use Yikaikeji\Extension\Implement\ConfigSource;
-use Yikaikeji\Extension\Utils\JsonFile;
-use Yikaikeji\Extension\Utils\JsonValidationException;
+use Openadm\Extension\Interfaces\PackageInterface;
+use Openadm\Extension\Implement\ConfigSource;
+use Openadm\Extension\Utils\JsonFile;
+use Openadm\Extension\Utils\JsonValidationException;
 use Composer\Semver\VersionParser;
 
 class Package implements PackageInterface
@@ -83,7 +83,7 @@ class Package implements PackageInterface
      */
     private $requireFramework;
     /**
-     * @var \Yikaikeji\Extension\Implement\ConfigSource
+     * @var \Openadm\Extension\Implement\ConfigSource
      */
     private $configSource;
 

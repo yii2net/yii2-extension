@@ -1,8 +1,8 @@
 <?php
-namespace Yikaikeji\Extension\Implement;
+namespace Openadm\Extension\Implement;
 
-use Yikaikeji\Extension\Interfaces\DependencyInterface;
-use Yikaikeji\Extension\Interfaces\PackageInterface;
+use Openadm\Extension\Interfaces\DependencyInterface;
+use Openadm\Extension\Interfaces\PackageInterface;
 use Jean85\PrettyVersions;
 use Composer\Semver\Semver;
 

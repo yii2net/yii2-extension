@@ -1,12 +1,12 @@
 <?php
-namespace Yikaikeji\Extension\Implement;
+namespace Openadm\Extension\Implement;
 
 use Nahid\QArray\QueryEngine;
-use Yikaikeji\Extension\Utils\JsonFile;
+use Openadm\Extension\Utils\JsonFile;
 
 /**
  * Class ArrayQuery
- * @package yikaikeji\extension\Implement
+ * @package Openadm\Extension\Implement
  */
 class ArrayQuery extends QueryEngine
 {

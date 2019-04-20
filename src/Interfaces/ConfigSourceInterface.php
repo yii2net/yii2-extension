@@ -1,5 +1,5 @@
 <?php
-namespace Yikaikeji\Extension\Interfaces;
+namespace Openadm\Extension\Interfaces;
 
 interface ConfigSourceInterface
 {

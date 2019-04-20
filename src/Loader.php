@@ -1,7 +1,7 @@
 <?php
-namespace Yikaikeji\Extension;
+namespace Openadm\Extension;
 
-use Yikaikeji\Extension\Interfaces\ManagerInterface;
+use Openadm\Extension\Interfaces\ManagerInterface;
 
 class Loader implements ManagerInterface
 {
@@ -10,7 +10,7 @@ class Loader implements ManagerInterface
      */
     private $container;
 
-    private $manager = 'Yikaikeji\Extension\Implement\Manager';
+    private $manager = 'Openadm\Extension\Implement\Manager';
 
     public function __construct($config = [])
     {

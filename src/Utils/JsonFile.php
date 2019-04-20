@@ -1,6 +1,6 @@
 <?php
 
-namespace Yikaikeji\Extension\Utils;
+namespace Openadm\Extension\Utils;
 
 use JsonSchema\Validator;
 use Seld\JsonLint\JsonParser;

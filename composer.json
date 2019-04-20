@@ -1,5 +1,5 @@
 {
-    "name": "yikaikeji/extension",
+    "name": "openadm/extension",
     "description": "an extension framework",
     "type": "library",
     "keywords": ["extension","manager","system","framework"],
@@ -23,7 +23,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Yikaikeji\\Extension\\": "src/"
+            "Openadm\\Extension\\": "src/"
         }
     }
 }

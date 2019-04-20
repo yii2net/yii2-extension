@@ -10,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Yikaikeji\Extension\Utils;
+namespace Openadm\Extension\Utils;
 
 /**
  * Formats json strings used for php < 5.4 because the json_encode doesn't

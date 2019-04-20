@@ -1,15 +1,15 @@
 <?php
-namespace Yikaikeji\Extension\Implement;
+namespace Openadm\Extension\Implement;
 
-use Yikaikeji\Extension\Interfaces\ConfigSourceInterface;
-use Yikaikeji\Extension\Interfaces\PackageInterface;
-use Yikaikeji\Extension\Utils\JsonFile;
-use Yikaikeji\Extension\Implement\Dependency;
-use Yikaikeji\Extension\Implement\Composer;
+use Openadm\Extension\Interfaces\ConfigSourceInterface;
+use Openadm\Extension\Interfaces\PackageInterface;
+use Openadm\Extension\Utils\JsonFile;
+use Openadm\Extension\Implement\Dependency;
+use Openadm\Extension\Implement\Composer;
 
 /**
  * Class ConfigSource
- * @package Yikaikeji\Extension\Implement
+ * @package Openadm\Extension\Implement
  */
 class ConfigSource implements ConfigSourceInterface
 {

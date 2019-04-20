@@ -1,12 +1,12 @@
 <?php
-namespace Yikaikeji\Extension\Implement;
+namespace Openadm\Extension\Implement;
 
 use Doctrine\Common\EventArgs as BaseEventArgs;
 
 /**
  * Class EventArgs
  * Save Event Result in this Static Class
- * @package Yikaikeji\Extension\Implement
+ * @package Openadm\Extension\Implement
  */
 class EventArgs extends BaseEventArgs
 {

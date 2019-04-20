@@ -1,8 +1,8 @@
 <?php
-namespace Yikaikeji\Extension\Implement;
+namespace Openadm\Extension\Implement;
 
-use Yikaikeji\Extension\Interfaces\ComposerInterface;
-use Yikaikeji\Extension\Interfaces\ConfigSourceInterface;
+use Openadm\Extension\Interfaces\ComposerInterface;
+use Openadm\Extension\Interfaces\ConfigSourceInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 

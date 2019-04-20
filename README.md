@@ -10,13 +10,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist yikaikeji/yii2-extension-manager "*"
+php composer.phar require --prefer-dist openadm/yii2-extension "*"
 ```
 
 or add
 
 ```
-"yikaikeji/yii2-extension-manager": "*"
+"openadm/yii2-extension": "*"
 ```
 
 to the require section of your `composer.json` file.
@@ -28,4 +28,4 @@ Usage
 Once the extension is installed, simply use it in your code by  :
 
 ```php
-<?= \yikaikeji\extension\system\AutoloadExample::widget(); ?>```
+```
