@@ -18,6 +18,8 @@ class Composer implements ComposerInterface
      */
     const CMD_UPDATE  = "update";
 
+    const CMD_REQUIRE  = "require";
+
     /**
      *
      */
@@ -135,6 +137,12 @@ class Composer implements ComposerInterface
     {
         $params[] = "--prefer-dist";
         $this->exec(static::CMD_UPDATE, $params, $callback);
+    }
+
+    public function requireN($params = [], $callback)
+    {
+        array_unshift($params,"--prefer-dist");
+        $this->exec(static::CMD_REQUIRE, $params, $callback);
     }
 
     /**

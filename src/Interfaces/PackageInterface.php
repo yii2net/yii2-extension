@@ -3,6 +3,8 @@ namespace Openadm\Extension\Interfaces;
 
 interface PackageInterface
 {
+    public function getDirName();
+
     public function getName();
 
     public function getVersion();
@@ -36,4 +38,8 @@ interface PackageInterface
     public function getRequire();
 
     public function toArray();
+
+    public function hasComposerInstalled();
+
+    public function getInstalledPath();
 }

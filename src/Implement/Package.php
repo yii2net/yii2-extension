@@ -30,6 +30,14 @@ class Package implements PackageInterface
     const STATUS_DOWNLOADED = 'downloaded';
 
     /**
+     * @var array 包名和真实的目录对应关系
+     */
+    private $autoloadMap = [];
+    /**
+     * @var packageName对应的真实目录
+     */
+    private $dirName;
+    /**
      * @var string package id
      */
     private $name;
@@ -103,19 +111,23 @@ class Package implements PackageInterface
 
     public function __construct(ConfigSource $configSource, $packageName, $packageDir='')
     {
-        $this->name = $packageName;
+        //这个包名是外围的目录名称，不是真实的包名
+        $this->dirName = $packageName;
+        $this->name = $packageName;//默认
         $this->configSource = $configSource;
         if(!$packageDir){
             $packageDir = $this->configSource->getPackageScanPath();
         }
-        $this->_path  = $packageDir.DIRECTORY_SEPARATOR.$this->getName().DIRECTORY_SEPARATOR.$this->configSource->getPackageConfigFileName();
+        $this->_path  = $packageDir.DIRECTORY_SEPARATOR.$this->getDirName().DIRECTORY_SEPARATOR.$this->configSource->getPackageConfigFileName();
         $this->checkPackageConfig();
 
         if($this->getPackageValidate()){
             try{
                 $this->_config = JsonFile::parseJson(file_get_contents($this->getPath()));
-                //如果composer.json的name与getId()不一致就判断包有问题
-                if($this->get('name') != $this->getName()){
+                //先尝试解析autoload，把packageName和真实的目录对应起来
+                $this->parseAutoload();
+                //如果composer.json的name与getName()不一致就判断包有问题
+                if($this->get('name') != $this->getDirName()){
                     $this->_config = [];
                     $this->_packageValidate = false;
                 }else{
@@ -124,7 +136,7 @@ class Package implements PackageInterface
                     }
                     $this->setStatus(static::STATUS_DOWNLOADED);
                     //检测composer extra meta=>string/array
-                    if(is_string($this->_config['extra'][$this->configSource->getExtraNamespace()])){
+                    if(isset($this->_config['extra'][$this->configSource->getExtraNamespace()]) && is_string($this->_config['extra'][$this->configSource->getExtraNamespace()])){
                         $extraConfigFile = $this->configSource->getPackageScanPath() . DIRECTORY_SEPARATOR . $this->getName() . DIRECTORY_SEPARATOR . $this->_config['extra'][$this->configSource->getExtraNamespace()];
                         if(is_file($extraConfigFile)){
                             $extraConfig = include $extraConfigFile;
@@ -136,7 +148,23 @@ class Package implements PackageInterface
                     $this->setProperties();
                 }
             }catch (\Exception $e){
+                if($this->configSource->isDebug()){
+                    print_r($e->getMessage());
+                }
                 $this->_packageValidate = false;
+            }
+        }
+    }
+
+    private function parseAutoload()
+    {
+        $config = $this->_config;
+        if(isset($config['autoload']) && !empty($config['autoload'])){
+            $autoload = $config['autoload'];
+            if(isset($autoload['psr-4']) && !empty($autoload['psr-4'])){
+                foreach ($autoload['psr-4'] as $prefix => $dir){
+                    $this->autoloadMap[$prefix] = $dir;
+                }
             }
         }
     }
@@ -346,6 +374,21 @@ class Package implements PackageInterface
     public function getRequire()
     {
         return $this->require;
+    }
+
+    public function getDirName()
+    {
+        return $this->dirName;
+    }
+
+    public function hasComposerInstalled()
+    {
+        return is_dir($this->getInstalledPath());
+    }
+
+    public function getInstalledPath()
+    {
+        return $this->configSource->getPackageInstalledPath().DIRECTORY_SEPARATOR.$this->getDirName();
     }
 
 }

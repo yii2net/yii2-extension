@@ -353,7 +353,7 @@ class ConfigSource implements ConfigSourceInterface
         if(empty($un)){
             $this->canDisablePackagist = true;
         }
-        return $this->canDisablePackagist;
+        return $this->canDisablePackagist ? $this->canDisablePackagist : $un;
     }
 
     /**

@@ -5,12 +5,12 @@ use Openadm\Extension\Implement\EventArgs;
 use Doctrine\Common\EventManager;
 use Openadm\Extension\Interfaces\ManagerInterface;
 use Openadm\Extension\Implement\ConfigSource;
-use Jean85\PrettyVersions;
 use Openadm\Extension\Interfaces\PackageInterface;
 use Openadm\Extension\Implement\ArrayQuery;
 use Openadm\Extension\Implement\Dependency;
 use Openadm\Extension\Implement\Package;
 use Openadm\Extension\Implement\Composer;
+use Openadm\Extension\Implement\Version;
 
 class Manager implements ManagerInterface
 {
@@ -162,7 +162,7 @@ class Manager implements ManagerInterface
         $this->eventManager->dispatchEvent(self::EVENT_BEFORE_SETUP,$eventArgs);
         $this->doSetup($eventArgs);
         $this->eventManager->dispatchEvent(self::EVENT_AFTER_SETUP,$eventArgs);
-        return $eventArgs->result;
+        return $eventArgs;
     }
 
     /**
@@ -179,7 +179,13 @@ class Manager implements ManagerInterface
             $path = $this->configSource->getPackageScanPath().DIRECTORY_SEPARATOR.$eventArgs->packageName;
             $package = new Package($this->configSource,$eventArgs->packageName);
             $eventArgs->packageVersion = $package->getVersion();
-            $this->configSource->checkCanDisablePackagist($package);
+            $unInstalledPackages = $this->configSource->checkCanDisablePackagist($package);
+            if(is_array($unInstalledPackages) && !empty($unInstalledPackages)){
+                //说明有缺失的依赖，此时进行自动安装
+                foreach ($unInstalledPackages as $packageName=>$packageVersion){
+                    $this->composer->requireN([$packageName.":".$packageVersion],$this->configSource->onSetupCallback());
+                }
+            }
         }
 
         $this->configSource->addPackageToComposer($eventArgs->packageName,$eventArgs->packageVersion,$path);
@@ -189,8 +195,8 @@ class Manager implements ManagerInterface
         }
         $this->composer->update([],$this->configSource->onSetupCallback());
         $this->configSource->enablePackagist();
-        $eventArgs->result = $result;
-        return $result;
+        $eventArgs->result = $package->hasComposerInstalled();
+        return $eventArgs->result;
     }
 
     /**
@@ -264,7 +270,7 @@ class Manager implements ManagerInterface
         $package = new Package($this->configSource,$packageName);
         if($package->getPackageValidate()){
             try{
-                PrettyVersions::getVersion($packageName);
+                Version::getVersion($packageName);
                 $package->setStatus(Package::STATUS_SETUPED);
             }catch (\OutOfBoundsException $e){
                 $package->setStatus(Package::STATUS_DOWNLOADED);
