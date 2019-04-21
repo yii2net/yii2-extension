@@ -3,7 +3,7 @@ namespace Openadm\Extension\Implement;
 
 use Openadm\Extension\Interfaces\DependencyInterface;
 use Openadm\Extension\Interfaces\PackageInterface;
-use Jean85\PrettyVersions;
+use Openadm\Extension\Implement\Version;
 use Composer\Semver\Semver;
 
 class Dependency implements DependencyInterface
@@ -52,7 +52,7 @@ class Dependency implements DependencyInterface
     protected function checkRequiredPackageInstalledAndVersion($packageName,$packageVersion)
     {
         try{
-            $version = PrettyVersions::getVersion($packageName);
+            $version = Version::getVersion($packageName);
             $installedPackageVersion = $version->getShortVersion();
             if(Semver::satisfies($installedPackageVersion, $packageVersion) ){
                 //安装的包，符合packageVersion的需求
