@@ -183,7 +183,8 @@ class Manager implements ManagerInterface
             if(is_array($unInstalledPackages) && !empty($unInstalledPackages)){
                 //说明有缺失的依赖，此时进行自动安装
                 foreach ($unInstalledPackages as $packageName=>$packageVersion){
-                    $this->composer->requireN([$packageName.":".$packageVersion],$this->configSource->onSetupCallback());
+                    $ver = is_array($packageVersion) ? $packageVersion[0] : $packageVersion;
+                    $this->composer->requireN([$packageName.":".$ver],$this->configSource->onSetupCallback());
                 }
             }
         }

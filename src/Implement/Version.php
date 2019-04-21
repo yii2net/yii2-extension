@@ -34,7 +34,7 @@ class Version
         $path = $oClass->getFileName();
         $content = file_get_contents($path);
         $packageName = str_replace('/','\/',$packageName);
-        $exp = "/{$packageName}[^,]*\'(.*)\'\s*,/i";
+        $exp = "/{$packageName}'[^,]*\'(.*)\'\s*,/i";
         if(preg_match($exp,$content,$m)){
             $version = $m[1];
         }else{
