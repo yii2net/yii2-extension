@@ -383,12 +383,16 @@ class Package implements PackageInterface
 
     public function hasComposerInstalled()
     {
-        return is_dir($this->getInstalledPath());
+        return $this->getInstalledPath() ? true : false;
     }
 
     public function getInstalledPath()
     {
-        return $this->configSource->getPackageInstalledPath().DIRECTORY_SEPARATOR.$this->getDirName();
+        if(is_dir($this->configSource->getVendorPath().DIRECTORY_SEPARATOR.$this->getDirName())){
+            return $this->configSource->getVendorPath().DIRECTORY_SEPARATOR.$this->getDirName();
+        }else if(is_dir($this->configSource->getPackageInstalledPath().DIRECTORY_SEPARATOR.$this->getDirName())){
+            return $this->configSource->getPackageInstalledPath().DIRECTORY_SEPARATOR.$this->getDirName();
+        }
+        return null;
     }
-
 }

@@ -14,6 +14,8 @@ class Dependency implements DependencyInterface
      */
     const PLATFORM_PACKAGE_REGEX = '{^(?:php(?:-64bit|-ipv6|-zts|-debug)?|hhvm|(?:ext|lib)-[a-z0-9](?:[_.-]?[a-z0-9]+)*|composer-plugin-api)$}iD';
 
+    const INSTALLED_VERSION_SATISFIES_REGREX = '/(dev-)?master/i';
+
     private $require = [];
 
     private $package;
@@ -54,11 +56,15 @@ class Dependency implements DependencyInterface
         try{
             $version = Version::getVersion($packageName);
             $installedPackageVersion = $version->getShortVersion();
-            if(Semver::satisfies($installedPackageVersion, $packageVersion) ){
-                //安装的包，符合packageVersion的需求
+            if(preg_match(self::INSTALLED_VERSION_SATISFIES_REGREX,$installedPackageVersion)){
                 $this->setInstalledPackages($packageName,[$packageVersion,$installedPackageVersion]);
             }else{
-                $this->setUnInstalledPackages($packageName,[$packageVersion,$installedPackageVersion]);
+                if(Semver::satisfies($installedPackageVersion, $packageVersion) ){
+                    //安装的包，符合packageVersion的需求
+                    $this->setInstalledPackages($packageName,[$packageVersion,$installedPackageVersion]);
+                }else{
+                    $this->setUnInstalledPackages($packageName,[$packageVersion,$installedPackageVersion]);
+                }
             }
         }catch (\OutOfBoundsException $e){
             if (!preg_match(self::PLATFORM_PACKAGE_REGEX, $packageName)) {

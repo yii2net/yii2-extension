@@ -80,5 +80,8 @@ class Loader implements ManagerInterface
         return $this->container->get($this->manager)->localList($category, $status, $query , $page, $pageSize);
     }
 
-
+    public function getManager()
+    {
+        return $this->container->get($this->manager);
+    }
 }

@@ -37,4 +37,6 @@ interface ConfigSourceInterface
 
     public function enablePackagist();
 
+    public function getVendorPath();
+
 }

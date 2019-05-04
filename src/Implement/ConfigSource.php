@@ -61,6 +61,8 @@ class ConfigSource implements ConfigSourceInterface
      */
     private $onSetupCallback;
 
+    private $vendorPath;
+
     /**
      * @var
      */
@@ -388,6 +390,11 @@ class ConfigSource implements ConfigSourceInterface
     public function getCanDisablePackagist()
     {
         return $this->canDisablePackagist;
+    }
+
+    public function getVendorPath()
+    {
+        return $this->vendorPath;
     }
 
 }

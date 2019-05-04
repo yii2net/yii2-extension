@@ -281,6 +281,11 @@ class Manager implements ManagerInterface
         return null;
     }
 
+    public function getPackageWithoutValidate($packageName)
+    {
+        return new Package($this->configSource,$packageName);
+    }
+
     /**
      * @return array
      */
@@ -371,5 +376,4 @@ class Manager implements ManagerInterface
         }
         return $result;
     }
-
 }

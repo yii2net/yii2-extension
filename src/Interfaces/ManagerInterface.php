@@ -29,4 +29,6 @@ interface ManagerInterface
     public function remoteList($category='',$query='',$page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE);
 
     public function localList($category='',$status='',$query='',$page=self::DEFAULT_PAGE,$pageSize=self::DEFAULT_PAGESIZE);
+
+    public function getPackage($packageName);
 }

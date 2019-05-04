@@ -42,4 +42,5 @@ interface PackageInterface
     public function hasComposerInstalled();
 
     public function getInstalledPath();
+
 }
