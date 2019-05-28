@@ -33,7 +33,7 @@ class ConfigSource implements ConfigSourceInterface
      * @var array
      */
     private $mustComposerPlugins = [
-        "oomphinc/composer-installers-extender"=>"dev-master"
+        "oomphinc/composer-installers-extender"=>"^1.1.2"
     ];
 
     /**
