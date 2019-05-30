@@ -182,10 +182,10 @@ class Manager implements ManagerInterface
             $unInstalledPackages = $this->configSource->checkCanDisablePackagist($package);
             if(is_array($unInstalledPackages) && !empty($unInstalledPackages)){
                 //说明有缺失的依赖，此时进行自动安装
-//                foreach ($unInstalledPackages as $packageName=>$packageVersion){
-//                    $ver = is_array($packageVersion) ? $packageVersion[0] : $packageVersion;
-//                    $this->composer->requireN([$packageName.":".$ver],$this->configSource->onSetupCallback());
-//                }
+                foreach ($unInstalledPackages as $packageName=>$packageVersion){
+                    $ver = is_array($packageVersion) ? $packageVersion[0] : $packageVersion;
+                    $this->composer->requireN([$packageName.":".$ver],$this->configSource->onSetupCallback());
+                }
             }
         }
 

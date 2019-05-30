@@ -39,4 +39,6 @@ interface ConfigSourceInterface
 
     public function getVendorPath();
 
+    public function getShellEnv();
+
 }

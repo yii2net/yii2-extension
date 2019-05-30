@@ -28,6 +28,8 @@ class ConfigSource implements ConfigSourceInterface
 
     private $packagePathSymLink = false;
 
+    private $shellEnv = [];
+
 
     /**
      * @var array
@@ -395,6 +397,16 @@ class ConfigSource implements ConfigSourceInterface
     public function getVendorPath()
     {
         return $this->vendorPath;
+    }
+
+    public function setShellEnv(array $env)
+    {
+        $this->shellEnv = $env;
+    }
+
+    public function getShellEnv()
+    {
+        return $this->shellEnv;
     }
 
 }

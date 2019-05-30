@@ -101,7 +101,7 @@ class Composer implements ComposerInterface
         if($this->configSource->isDebug()){
             if(is_callable($callback))$callback($cmd . " in " .$this->configSource->getRootProjectPath());
         }
-        $process = new Process($cmd,$this->configSource->getRootProjectPath());
+        $process = new Process($cmd,$this->configSource->getRootProjectPath(),$this->configSource->getShellEnv());
         $process->setTimeout(600);
         $process->start();
         $process->waitUntil(function ($type, $buffer)use($callback) {
