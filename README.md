@@ -1,6 +1,6 @@
-ExtensionManager
+Extension Based on Composer
 ================
-an extension manager
+基于Composer包管理的扩展管理项目，支持在代码里setup/unsetup代码包
 
 Installation
 ------------
@@ -28,4 +28,5 @@ Usage
 Once the extension is installed, simply use it in your code by  :
 
 ```php
+配合yii2net/yii2-admin使用，除非构建自己的扩展管理框架，可以单独使用此项目
 ```

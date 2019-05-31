@@ -30,7 +30,7 @@ class Composer implements ComposerInterface
     /**
      * @var array
      */
-    private $default_params = ["-n"];
+    private $default_params = ["-n","--optimize-autoloader"];
 
     /**
      * @var ConfigSourceInterface
